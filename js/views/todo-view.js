@@ -19,6 +19,7 @@ var app = app || {};
 		events: {
 			'click .toggle': 'toggleCompleted',
 			'dblclick label': 'edit',
+			'click .edit-btn': 'edit',
 			'click .destroy': 'clear',
 			'keypress .edit': 'updateOnEnter',
 			'keydown .edit': 'revertOnEscape',
@@ -111,6 +112,36 @@ var app = app || {};
 		updateOnEnter: function (e) {
 			if (e.which === ENTER_KEY) {
 				this.close();
+			}
+		},
+
+		// If you hit the checkbox, we'll add '--done' to the text,
+		// otherwise remove it.
+		updateOnComplete: function() {
+			var value = "";
+			var trimmedValue = "";
+
+			if (this.model.get('completed')) {
+				value = this.$input.val() + "--done";
+			} else {
+				value = this.$input.val().replace("--done", "");
+			}
+
+			trimmedValue = value.trim();
+
+			if (trimmedValue) {
+				this.model.save({ title: trimmedValue });
+
+				if (value !== trimmedValue) {
+					// Model values changes consisting of whitespaces only are
+					// not causing change to be triggered Therefore we've to
+					// compare untrimmed version with a trimmed one to check
+					// whether anything changed
+					// And if yes, we've to trigger change event ourselves
+					this.model.trigger('change');
+				}
+			} else {
+				this.clear();
 			}
 		},
 
